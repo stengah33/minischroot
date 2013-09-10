@@ -1,0 +1,142 @@
+#! /usr/bin/env bash
+t="$(dirname "$0")"
+ts="$t/bin"
+b="$(basename "$0")"
+case "$1" in
+  host|h)
+    case "$2" in
+      prep|p)
+        "$t/prepare_host.sh"
+        ;;
+      *)
+        echo "Usage: $b $1 <prep>"
+        echo "       prep - prepare host: mkdir, debootstrap"
+        ;; 
+    esac
+    ;;
+  guest|g)
+    case "$2" in
+      conf|c)
+        case "$3" in
+          show|s)
+            cat "$t/host_schroot_guest.conf"
+            ;;
+          *)
+            echo "Usage: $b $1 $2 <show>"
+            echo "       show - show config"
+            ;; 
+        esac
+        ;;
+      name|n)
+        "$t/get_guest_name.sh"
+        ;;
+      path|p)
+        "$t/get_schroot_path.sh"
+        ;;
+      *)
+        echo "Usage: $b $1 <conf|c | name|n | path|p>"
+        echo "       conf|c - schroot config operations"
+        echo "       name|n - get schroot guest name" 
+        echo "       path|p - get schroot guest path" 
+        ;; 
+    esac
+    ;;
+  session|sess|s)
+    case "$2" in
+      list|ls|l)
+        "$t/list_guest_sessions.sh" 
+        ;;
+      end|e)
+        "$t/end_guest_sessions.sh" 
+        ;;
+      begin|b)
+        shift; shift
+        "$t/begin_guest_session.sh"
+        ;;
+      run|r)
+        case "$3" in
+          cmd|c)
+            shift; shift; shift
+            "$t/run_cmd_in_guest_session.sh" "$@"
+            ;;
+          file|f)
+            shift; shift; shift
+            "$t/run_file_in_guest_session.sh" "$@"
+            ;;
+          *)
+            echo "Usage: $b $1 $2 <cmd|c | file|f>"
+            echo "       cmd|c <cmd>           - run command in guest session"
+            echo "       file|f <guest> <host> - copy run file into guest session and run it"
+            ;; 
+        esac
+        ;;
+      *)
+        echo "Usage: $b $1 <list|l begin|b end|e | run|r>"
+        echo "       list|l  - show sessions list"
+        echo "       begin|b - begin new session based on guest schroot"
+        echo "       end|e   - end session"
+        echo "       run|r   - run command or script operations"
+        ;; 
+    esac
+    ;;
+  single|1) 
+    case "$2" in
+      list|ls|l)
+        "$t/list_1_guest_session.sh" 
+        ;;
+      end|e)
+        "$t/end_1_guest_session.sh" 
+        ;;
+      begin|b)
+        "$t/begin_1_guest_session.sh"
+        ;;
+      run|r)
+        case "$3" in
+          cmd|c)
+            shift; shift; shift
+            "$t/run_cmd_in_1_guest_session.sh" $@
+            ;;
+          file|f)
+	    echo "ARGS $@"	
+            shift; shift; shift
+	    echo "ARGS $@"	
+            "$t/run_file_in_1_guest_session.sh" $@
+            ;;
+          *)
+            echo "Usage: $b $1 $2 <cmd|c | file|f>"
+            echo "       cmd|c <cmd>           - run command in guest session"
+            echo "       file|f <guest> <host> - copy run file into guest session and run it"
+            ;; 
+        esac
+        ;; 
+      *)
+        echo "Usage: $b $1 <list|l begin|b end|e | run|r>"
+        echo "       list|l  - show singleton session"
+        echo "       begin|b - begin new session based on guest schroot"
+        echo "       end|e   - end session"
+        echo "       run|r   - run command or script operations"
+        ;; 
+    esac
+    ;;
+  fs|f)
+    case "$2" in
+      list|ls|l)
+        . "$t/list_mounted_guest_fs.sh" 
+        ;;
+      umount|u)
+        "$t/umount_guest_fs.sh" 
+        ;;
+      *)
+        echo "Usage: $b $1 <list|l umount|u>"
+        echo "       list|l   - show guest session mounted filesystems"
+        echo "       umount|u - unmount the guestssion mounted filesystem"
+        ;; 
+    esac
+    ;;
+  *)
+    echo "Usage: $b <session|single|fs>"
+    echo "       session - schroot guest session"
+    echo "       single  - singleton session"
+    echo "       fs      - guest filesystem mounts"
+    ;;
+esac
